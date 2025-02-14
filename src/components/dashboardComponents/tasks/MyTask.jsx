@@ -1,18 +1,25 @@
-import React, { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { AuthContext } from "../../context/auth/authProvider/AuthProvider";
+import { useNavigate } from "react-router-dom";
 
 const MyTask = () => {
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [openModal, setOpenModal] = useState(false);
+  const [selectedTask, setSelectedTask] = useState(null);
+
+  const navigate = useNavigate();
   const { user } = useContext(AuthContext);
   const userId = user.id;
 
   useEffect(() => {
     const fetchTasks = async () => {
       try {
-        const response = await fetch(`http://localhost:5000/api/v1/task/user/${userId}`);
-        
+        const response = await fetch(
+          `http://localhost:5000/api/v1/task/user/${userId}`
+        );
+
         if (!response.ok) {
           throw new Error("Failed to fetch tasks");
         }
@@ -29,6 +36,28 @@ const MyTask = () => {
 
     fetchTasks();
   }, [userId]);
+
+  const handleDelete = async (id) => {
+    const confirmDelete = window.confirm(
+      "Are you sure you want to delete this task?"
+    );
+    if (!confirmDelete) return;
+
+    try {
+      const response = await fetch(`http://localhost:5000/api/v1/task/${id}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to delete task");
+      }
+      setTasks((prevTasks) => prevTasks.filter((task) => task.id !== id));
+    } catch (err) {
+      console.error("Error deleting task:", err);
+      alert("Failed to delete task");
+    }
+  };
+
 
   if (loading) {
     return <div>Loading...</div>;
@@ -62,14 +91,34 @@ const MyTask = () => {
                 <td className="border-b px-4 py-2">{task.due_date}</td>
                 <td className="border-b px-4 py-2">{task.priority}</td>
                 <td className="border-b px-4 py-2">
-                  <button className="text-blue-500">Edit</button>
-                  <button className="text-red-500 ml-2">Delete</button>
+                  <button
+                    className="text-blue-500"
+                
+                  >
+                    Edit
+                  </button>
+                  <button
+                    className="text-red-500 ml-2"
+                    onClick={() => handleDelete(task.id)}
+                  >
+                    Delete
+                  </button>
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
+
+      {/* Task Edit Form Modal */}
+      {openModal && (
+        <TaskUpdateForm
+          openModal={openModal}
+          setOpenModal={setOpenModal}
+          taskData={selectedTask}
+          setTasks={setTasks}
+        />
+      )}
     </section>
   );
 };
