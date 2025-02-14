@@ -1,16 +1,12 @@
-import { useState, useContext } from "react";
-import { DragDropContext, Droppable } from "react-beautiful-dnd";
+import { useState, useContext, useEffect } from "react";
+import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 import { GoPlus } from "react-icons/go";
-import Task from "./Task";
 import { Modal } from "flowbite-react";
 import usePostData from "../hooks/usePostData";
 import { useForm } from "react-hook-form";
 import toast from "react-hot-toast";
 import { IoMdAdd, IoMdClose } from "react-icons/io";
 import { AuthContext } from "../../context/auth/authProvider/AuthProvider";
-import { useWorkspace } from "../../context/workspace/WorkspaceContext";
-import useUpdateData from "../hooks/useUpdateData";
-import { RiCloseCircleFill } from "react-icons/ri";
 
 const capitalizeFirstLetter = (str) => {
   return str.charAt(0).toUpperCase() + str.slice(1);
@@ -18,20 +14,11 @@ const capitalizeFirstLetter = (str) => {
 
 const TasksBoard = () => {
   const { user } = useContext(AuthContext);
-  const {
-    activeWorkspace,
-    tasks,
-    refetchTasks,
-    refetchTotalCompletedTasks,
-    refetchTaskStatusData,
-    refetchNotifications,
-    isDarkMode,
-  } = useWorkspace();
   const { postData } = usePostData();
+  const [tasks, setTasks] = useState([]);
   const [openModal, setOpenModal] = useState(false);
   const [columnId, setColumnId] = useState(null);
-  const [uniqueId, setUniqueId] = useState("");
-  const { updateData } = useUpdateData();
+
   const {
     register,
     reset,
@@ -39,141 +26,40 @@ const TasksBoard = () => {
     formState: { errors },
   } = useForm();
 
-  const handleOnDragEnd = (result) => {
-    if (!result.destination) return;
-
-    const draggedTask = tasks.find((task) => task.id === result.draggableId);
-
-    console.log("log from", draggedTask);
-    // Check if the user is the creator before allowing the move to the "complete" column
-    if (
-      result.destination.droppableId == "complete" &&
-      activeWorkspace.creator !== user?.email
-    ) {
-      toast.custom(
-        <div className="flex items-center py-3.5 px-5 input-primary gap-2 border-2 border-red-600 dark:text-white">
-          {" "}
-          <RiCloseCircleFill className="z-20 text-red-600" />
-          <p className="text-xs ">
-            Only the creator can move the task to complete.
-          </p>
-        </div>
-      );
-      return;
-    }
-
-    const updatedTasks = [...tasks];
-    const startIndex = result.source.index;
-    const endIndex = result.destination.index;
-
-    if (result.source.droppableId === result.destination.droppableId) {
-      const columnTasks = updatedTasks.filter(
-        (task) => task.column_name === result.source.droppableId
-      );
-      const [removedTask] = columnTasks.splice(startIndex, 1);
-      columnTasks.splice(endIndex, 0, removedTask);
-
-      for (let i = 0; i < columnTasks.length; i++) {
-        columnTasks[i].order_position = i;
-      }
-    } else {
-      draggedTask.column_name = result.destination.droppableId;
-
-      updateData(
-        `/tasks/${draggedTask.id}`,
-        {
-          column_name: result.destination.droppableId,
-        },
-        (responseData, error) => {
-          if (!error) {
-            refetchTotalCompletedTasks();
-          } else {
-            console.error("Error:", error);
-          }
-        }
-      );
-      refetchTaskStatusData();
-      refetchTotalCompletedTasks();
-
-      const notification = {
-        user_name: user?.displayName,
-        user_email: user?.email,
-        user_photo: user?.photoURL,
-        workspace_id: activeWorkspace?.id,
-        message: `${user?.displayName} updated ${
-          draggedTask.title || "a task"
-        }'s column`,
-      };
-      postData(`/notifications`, notification, (responseData, error) => {
-        if (!error) {
-          refetchNotifications();
-        } else {
-          console.error("Error:", error);
-          refetchNotifications();
-        }
+  useEffect(() => {
+    fetch("http://localhost:5000/api/v1/task")
+      .then((res) => res.json())
+      .then((data) => {
+        setTasks(data.data.data);
       });
-    }
-  };
-
-  const generateUniqueId = () => {
-    const characters = "abcdefghijklmnopqrstuvwxyz0123456789";
-    const idLength = 12;
-    let newUniqueId = "";
-
-    // Add current date/time to the ID
-    const currentDate = new Date();
-    const timestamp = currentDate.getTime(); // Get current timestamp
-    newUniqueId += timestamp.toString(); // Append timestamp to ID
-
-    // Add random characters to the ID
-    for (let i = 0; i < idLength - 13; i++) {
-      // Subtract 13 for the length of timestamp
-      const randomIndex = Math.floor(Math.random() * characters.length);
-      newUniqueId += characters[randomIndex];
-    }
-
-    newUniqueId = newUniqueId.toUpperCase();
-    return newUniqueId;
-  };
+  }, []);
 
   const addNewTask = (columnId) => {
     setOpenModal(true);
-    setColumnId(columnId); // Set the columnId in the state
-    const newUniqueId = generateUniqueId(); // Generate a new unique ID
-    setUniqueId(newUniqueId);
+    setColumnId(columnId);
   };
 
   const onSubmit = (data) => {
     const newItem = {
-      id: uniqueId,
-      title: data?.name || "New Task",
+      title: data?.title || "New Task",
       description: data?.description || "",
-      startDate: data?.startDate,
-      endDate: data?.endDate,
+      due_date: data?.due_date,
       priority: data?.priority || "Low",
-      creator: user?.email,
-      workspaceId: activeWorkspace.id,
-      members: [user?.email],
-      tags: [],
-      image: "",
-      comments: [],
-      column_name: columnId,
+      user_id: user?.id,
+      status: columnId,
+      position: 1,
     };
 
-    postData("/tasks", newItem, (responseData, error) => {
+    postData("/task", newItem, (responseData, error) => {
       if (!error) {
-        console.log("Response:", responseData);
+        setTasks((prevTasks) => [...prevTasks, responseData]);
         toast.success("Successfully added task", {
           duration: 2000,
           className: "mt-32",
         });
-        reset(); // Reset the form
-        refetchTasks(); // Reset the form
-        setOpenModal(false); // Close the modal after successful submission
-        refetchTaskStatusData();
+        reset();
+        setOpenModal(false);
       } else {
-        console.error("Error:", error);
-
         toast.error("Failed to add task. Please try again later.", {
           duration: 2000,
           className: "mt-32",
@@ -182,9 +68,45 @@ const TasksBoard = () => {
     });
   };
 
+  const onDragEnd = async (result) => {
+    const { source, destination } = result;
+
+    if (!destination) return;
+
+    const draggedTaskId = result.draggableId;
+    const newStatus = destination.droppableId;
+
+    setTasks((prevTasks) =>
+      prevTasks.map((task) =>
+        task.id === draggedTaskId ? { ...task, status: newStatus } : task
+      )
+    );
+    
+    try {
+      await fetch(`http://localhost:5000/api/v1/task/${draggedTaskId}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ status: newStatus }),
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data) {
+            toast.success("Task status updated!");
+            setTimeout(() => {
+              window.location.reload();
+            }, 500);
+          }
+        });
+    } catch (error) {
+      console.error("Failed to update task status", error);
+      toast.error("Failed to update task. Please try again.");
+    }
+  };
+
   return (
     <div className="App">
-      {/* MODAL  */}
       <Modal
         show={openModal}
         size="6xl"
@@ -209,114 +131,28 @@ const TasksBoard = () => {
 
               {/* Task Name */}
               <div className="mt-3">
-                <label htmlFor="name" className="text-sm font-medium">
+                <label htmlFor="title" className="text-sm font-medium">
                   Task Name{" "}
-                  {errors.name && (
+                  {errors.title && (
                     <span className="text-red-500 text-xs ms-2">
-                      (Task name is required)
+                      (Task title is required)
                     </span>
                   )}
                 </label>
                 <input
-                  {...register("name", { required: true })}
+                  {...register("title", { required: true })}
                   type="text"
-                  id="name"
-                  placeholder="Enter your task name"
-                  className={`placeholder-text-black/25 placeholder:text-sm w-full border-2 border-dark p-3.5 input-primary mt-2 ${
-                    errors.name ? "border-red-500" : ""
-                  }`}
-                />
-              </div>
-
-              {/* Priority */}
-              <div className="mt-3">
-                <label htmlFor="priority" className="text-sm font-medium">
-                  Priority{" "}
-                  {errors.priority && (
-                    <span className="text-red-500 text-xs ms-2">
-                      (Priority is required)
-                    </span>
-                  )}
-                </label>
-                <select
-                  {...register("priority", { required: true })}
-                  id="priority"
+                  id="title"
+                  placeholder="Enter your task title"
                   className={`w-full border-2 border-dark p-3.5 input-primary mt-2 ${
-                    errors.priority ? "border-red-500" : ""
-                  }`}
-                  defaultValue="Low"
-                >
-                  <option value="">Select priority</option>
-                  <option value="Low">Low</option>
-                  <option value="Medium">Medium</option>
-                  <option value="High">High</option>
-                </select>
-              </div>
-
-              {/* Start Date */}
-              <div className="mt-3">
-                <label htmlFor="startDate" className="text-sm font-medium">
-                  Start Date{" "}
-                  {errors.startDate && (
-                    <span className="text-red-500 text-xs ms-2">
-                      (Start date is required)
-                    </span>
-                  )}
-                </label>
-                <input
-                  {...register("startDate", { required: true })}
-                  type="date"
-                  defaultValue={new Date().toISOString().substr(0, 10)}
-                  id="startDate"
-                  className={`w-full border-2 border-dark p-3.5 input-primary mt-2 ${
-                    errors.startDate ? "border-red-500" : ""
-                  }`}
-                />
-              </div>
-
-              {/* End Date */}
-              <div className="mt-3">
-                <label htmlFor="endDate" className="text-sm font-medium">
-                  End Date{" "}
-                  {errors.endDate && (
-                    <span className="text-red-500 text-xs ms-2">
-                      (End date is required)
-                    </span>
-                  )}
-                </label>
-                <input
-                  {...register("endDate", { required: true })}
-                  type="date"
-                  id="endDate"
-                  className={`w-full border-2 border-dark p-3.5 input-primary mt-2 ${
-                    errors.endDate ? "border-red-500" : ""
-                  }`}
-                />
-              </div>
-
-              {/* Description */}
-              <div className="mt-3">
-                <label htmlFor="description" className="text-sm font-medium">
-                  Description{" "}
-                  {errors.description && (
-                    <span className="text-red-500 text-xs ms-2">
-                      (Description is required)
-                    </span>
-                  )}
-                </label>
-                <textarea
-                  {...register("description")}
-                  id="description"
-                  placeholder="Enter task description"
-                  className={`placeholder-text-black/25 placeholder:text-sm w-full border-2 border-dark p-3.5 input-primary mt-2 ${
-                    errors.description ? "border-red-500" : ""
+                    errors.title ? "border-red-500" : ""
                   }`}
                 />
               </div>
 
               <button
                 type="submit"
-                className="text-center text-sm w-full border border-dark py-3.5 border-dashed  flex items-center gap-3 justify-center button-primary bg-dark text-white"
+                className="w-full border border-dark py-3.5 border-dashed flex items-center gap-3 justify-center bg-dark text-white"
               >
                 Add Task <IoMdAdd />
               </button>
@@ -324,58 +160,68 @@ const TasksBoard = () => {
           </form>
         </Modal.Body>
       </Modal>
-      <header className="App-header">
-        <DragDropContext onDragEnd={handleOnDragEnd}>
-          <div className="grid grid-cols-5 gap-3.5">
-            {["upcoming", "todo", "doing", "review", "complete"].map(
-              (columnId) => (
-                <div key={columnId}>
-                  <div className="pb-6 px-1.5 flex items-center justify-between">
-                    <h2 className="font-semibold text-lg">
-                      {capitalizeFirstLetter(columnId)}
-                    </h2>
-                    <div className="">
+
+      {/* TASK BOARD */}
+      <DragDropContext onDragEnd={onDragEnd}>
+        <header className="App-header">
+          <div className="grid grid-cols-3 gap-3.5">
+            {["pending", "in_progress", "completed"].map((columnId) => (
+              <Droppable key={columnId} droppableId={columnId}>
+                {(provided) => (
+                  <div
+                    ref={provided.innerRef}
+                    {...provided.droppableProps}
+                    className="border p-4 bg-gray-100 rounded-lg"
+                  >
+                    <div className="pb-6 px-1.5 flex items-center justify-between">
+                      <h2 className="font-semibold text-lg">
+                        {capitalizeFirstLetter(columnId)}
+                      </h2>
                       <button
-                        className="button-primary bg-dark dark:bg-white text-white dark:text-dark p-1 text-lg"
+                        className="bg-dark text-white p-1 text-lg"
                         onClick={() => addNewTask(columnId)}
                       >
                         <GoPlus />
                       </button>
                     </div>
-                  </div>
 
-                  <Droppable droppableId={columnId} key={columnId}>
-                    {(provided) => (
-                      <div
-                        className="characters min-h-screen overflow-y-auto"
-                        {...provided.droppableProps}
-                        ref={provided.innerRef}
-                      >
-                        {tasks &&
-                          tasks
-                            .filter((task) => task.column_name === columnId)
-                            .map((task, index) => (
-                              <Task
-                                key={task.id}
-                                refetchTasks={refetchTasks}
-                                refetchTotalCompletedTasks={
-                                  refetchTotalCompletedTasks
-                                }
-                                isDarkMode={isDarkMode}
-                                task={task}
-                                index={index}
-                              />
-                            ))}
-                        {provided.placeholder}
-                      </div>
-                    )}
-                  </Droppable>
-                </div>
-              )
-            )}
+                    {/* RENDER TASKS */}
+                    <div className="space-y-2">
+                      {tasks
+                        .filter((task) => task.status === columnId)
+                        .map((task, index) => (
+                          <Draggable
+                            key={task.id}
+                            draggableId={task.id.toString()}
+                            index={index}
+                          >
+                            {(provided) => (
+                              <div
+                                ref={provided.innerRef}
+                                {...provided.draggableProps}
+                                {...provided.dragHandleProps}
+                                className="p-4 bg-white shadow rounded cursor-pointer"
+                              >
+                                <h3 className="font-medium">{task.title}</h3>
+                                <p className="text-sm text-gray-500">
+                                  {task.description}
+                                </p>
+                                <p className="text-xs text-gray-400">
+                                  Priority: {task.priority}
+                                </p>
+                              </div>
+                            )}
+                          </Draggable>
+                        ))}
+                      {provided.placeholder}
+                    </div>
+                  </div>
+                )}
+              </Droppable>
+            ))}
           </div>
-        </DragDropContext>
-      </header>
+        </header>
+      </DragDropContext>
     </div>
   );
 };

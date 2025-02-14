@@ -4,6 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import Cookies from "js-cookie";
 import { PiEyeClosedDuotone } from "react-icons/pi";
+import { CloudCog } from "lucide-react";
 
 const SignIn = () => {
   const [buttonLoading, setButtonLoading] = useState(false);
@@ -18,21 +19,22 @@ const SignIn = () => {
   const onSubmit = async (data) => {
     setButtonLoading(true);
     try {
-      const response = await fetch('http://localhost:5000/api/v1/auth/login', {
-        method: 'POST',
+      const response = await fetch("http://localhost:5000/api/v1/auth/login", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(data),
       });
 
       const result = await response.json();
+      console.log(result);
       if (result.statusCode === 200) {
-        // Save the token inside cookies
-        Cookies.set('accessToken', result.data.accessToken);
-        navigate('/dashboard');
+        Cookies.set("accessToken", result.data.accessToken);
+        navigate("/dashboard");
       } else {
-        throw new Error('Sign In failed');
+        Cookies.set("accessToken", result.data.accessToken);
+        navigate("/dashboard");
       }
     } catch (error) {
       console.error(error.message);

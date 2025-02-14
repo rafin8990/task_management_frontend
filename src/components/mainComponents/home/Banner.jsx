@@ -1,5 +1,6 @@
 import Container from "../../shared/container/Container";
 import blackLogo from "../../../assets/banner-black-logo.png";
+import { Link } from "react-router-dom";
 
 const Banner = () => {
   return (
@@ -13,9 +14,11 @@ const Banner = () => {
             </h2>
             <div className="flex items-center justify-center">
               <div className="space-x-7">
-                <button className="text-center mx-auto  input-primary px-8 py-3.5 bg-white border-2 border-dark ">
-                  Sign Up
-                </button>
+                <Link to="/register">
+                  <button className="text-center mx-auto  input-primary px-8 py-3.5 bg-white border-2 border-dark ">
+                    Sign Up
+                  </button>
+                </Link>
                 <button className="text-center mx-auto  button-primary px-8 py-3.5 bg-dark text-white border-2 border-dark">
                   Get Started Today
                 </button>

@@ -6,10 +6,10 @@ const MainLayout = () => {
   const location = useLocation();
   return (
     <main>
-      {location?.pathname === "/sign-in" ||
+      {location?.pathname === "/login" ||
         location?.pathname === "/register" || <Navbar />}
       <Outlet />
-      {location?.pathname === "/sign-in" ||
+      {location?.pathname === "/login" ||
         location?.pathname === "/register" || <Footer />}
     </main>
   );

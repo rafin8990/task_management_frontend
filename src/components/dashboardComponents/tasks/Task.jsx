@@ -48,7 +48,6 @@ const Task = ({
       : description;
 
   const handleShowTaskDetails = () => {
-    // Handle edit functionality
     setIsOpenDetailsModal(true);
   };
 
@@ -64,7 +63,6 @@ const Task = ({
     setIsOpenSidebar(false);
   };
 
-  // Function to send task members' emails to the backend
   const sendTaskMembersEmails = async () => {
     try {
       const response = await axiosPublic.post("/tasks/members-details", {
@@ -78,16 +76,14 @@ const Task = ({
   };
 
   useEffect(() => {
-    // Fetch task members' details when the component mounts
     sendTaskMembersEmails();
-  }, [task]); // Empty dependency array to ensure this effect runs only once when the component mounts
+  }, [task]); 
 
-  // Render null if task is null or undefined
+ 
   if (!task) {
     return null;
   }
   const handleTaskDrop = () => {
-    // Update the task's column in the backend
     refetchTasks();
     refetchTotalCompletedTasks();
   };
@@ -101,7 +97,7 @@ const Task = ({
           ref={provided.innerRef}
           {...provided.draggableProps}
           {...provided.dragHandleProps}
-          onChange={handleTaskDrop} // Call handleTaskDrop when the task is dropped
+          onChange={handleTaskDrop}
         >
           <div
             className={`task border-2 dark:border-secondaryDark p-5 mb-3 relative overflow-hidden ${

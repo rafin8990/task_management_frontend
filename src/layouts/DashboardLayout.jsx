@@ -22,9 +22,7 @@ const DashboardLayout = () => {
   } = useForm();
 
   const onSubmit = (data) => {
-    // Handle form submission here
-    console.log(data);
-
+   
     const defaultWorkspace = {
       name: data?.name,
       creator: user?.email,

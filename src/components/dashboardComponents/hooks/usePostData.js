@@ -18,7 +18,7 @@ const usePostData = () => {
       .catch((err) => {
         console.log("error to add", { error }, err?.response?.data?.error);
         toast.error(err?.response?.data?.error);
-        setError(err); // Set the error state
+        setError(err);
         if (callback && typeof callback === "function") {
           callback(null, err);
         }

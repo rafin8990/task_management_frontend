@@ -14,7 +14,7 @@ const AuthProvider = ({ children }) => {
     try {
       await fetch("http://localhost:5000/api/v1/auth/signout", {
         method: "POST",
-        credentials: "include", // Ensure cookies are sent
+        credentials: "include", 
       });
       Cookies.remove("accessToken"); // Remove token from cookies
       setUser(null);
@@ -32,7 +32,6 @@ const AuthProvider = ({ children }) => {
         try {
           const decodedUser = jwtDecode(token); // Decode token
           setUser(decodedUser);
-          console.log(decodedUser)
         } catch (error) {
           console.error("Error decoding token:", error);
           setUser(null);

@@ -19,13 +19,12 @@ const DashboardNavbar = () => {
   const handleLogOut = () => {
     navigate('/');
     signOutUser();
-    localStorage.removeItem('lastWorkspace');
+    localStorage.removeItem('accessToken');
   };
   const darkModeHandler = () => {
     setIsDarkMode(!isDarkMode);
     document.body.classList.toggle('dark');
   };
-  console.log(isDarkMode);
 
   return (
     <section className="sticky top-0 bg-white dark:bg-dark z-50">
@@ -35,54 +34,16 @@ const DashboardNavbar = () => {
         </div>
 
         <div className="flex gap-3 items-center">
-          {/* <div className="w-10 h-10 p-2.5  border-2 border-black rounded-full flex items-center justify-center text-2xl">
-
-            <FiSearch />
-          </div> */}
+        
           <button
             onClick={() => darkModeHandler()}
             className={`w-10 h-10 p-1.5 border-2 border-dark dark:border-white bg-dark dark:bg-white text-white dark:text-dark text-xl rounded-full flex items-center justify-center`}
           >
             {isDarkMode ? <TbSunFilled /> : <HiMiniMoon />}
           </button>
-          {/* NOTIFICATION */}
-          <CustomDropdown
-            trigger={
-              <button
-                className={`w-10 h-10 p-2.5  border-2 border-dark dark:border-white bg-dark dark:bg-white text-white dark:image-dark dark:rounded-full  rounded-full ${
-                  !isDarkMode && 'icon-container active'
-                } relative`}
-              >
-                <img className={` ${isDarkMode && 'image-dark'}`} src={notificationIcon} alt="" />
-                {notifications.length >= 1 && (
-                  <span className="absolute -top-1.5 bg-red-600 w-3.5 h-3.5 border-2 bg- border-white rounded-full right-0 "></span>
-                )}
-              </button>
-            }
-            title={'Notifications'}
-            data={notifications}
-            backgroundColor={'white'}
-            refetchNotifications={refetchNotifications}
-          />
 
-          {/* INBOX */}
-          <CustomDropdown
-            trigger={
-              <div
-                className={`w-10 h-10 p-2.5  border-2 border-dark dark:border-white bg-dark dark:bg-white text-white dark:image-dark dark:rounded-full  rounded-full ${
-                  !isDarkMode && 'icon-container active'
-                } relative`}
-              >
-                <img className="" src={inboxIcon} alt="" />
-              </div>
-            }
-            title={'Message'}
-            data={[]}
-          />
 
-          {/* USER PROFILE  */}
-
-          <div className=" xl:flex hidden  text-start rounded-lg bg-[white] dark:bg-dark dark:text-white">
+          <div className=" xl:flex text-start rounded-lg bg-[white] dark:bg-dark dark:text-white">
             <Dropdown
               className="bg-white  w-[200px] rounded-lg text-start"
               inline
