@@ -1,0 +1,13 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* GOOGLE FONTS */
+body {
+  font-family: 'Roboto', sans-serif;
+  font-optical-sizing: auto;
+}
+
+.gritting-font {
+  font-family: 'Briem Hand', cursive;
+}
