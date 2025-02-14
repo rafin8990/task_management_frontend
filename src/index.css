@@ -11,3 +11,26 @@ body {
 .gritting-font {
   font-family: 'Briem Hand', cursive;
 }
+
+/* Add this in your global CSS file or component-specific styles */
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th,
+td {
+  border: 1px solid #ddd;
+  padding: 12px;
+  text-align: left;
+}
+
+th {
+  background-color: #f4f4f4;
+}
+
+button {
+  padding: 4px 8px;
+  border: none;
+  cursor: pointer;
+}

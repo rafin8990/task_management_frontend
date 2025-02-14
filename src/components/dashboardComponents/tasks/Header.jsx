@@ -1,17 +1,15 @@
 import sortIcon from "../../../assets/icons/sort.svg";
 import dotsIcon from "../../../assets/icons/dot.svg";
 import { IoFilterSharp } from "react-icons/io5";
-import { useWorkspace } from "../../context/workspace/WorkspaceContext";
 import FiltersDropdown from "../shared/dropdown/FiltersDropdown";
 
 const Header = () => {
-  const { totalCompletedTasks, totalCompletedTasksLoading } = useWorkspace();
+
   return (
     <section>
       <div className="border-b-2 dark:border-secondaryDark dark:bg-dark py-3 px-6 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          {totalCompletedTasksLoading ? (
-            <div role="status">
+        <div role="status">
               <svg
                 aria-hidden="true"
                 className="inline w-2.5 h-2.5 text-gray-200 animate-spin dark:text-gray-600 fill-green-400"
@@ -30,11 +28,6 @@ const Header = () => {
               </svg>
               <span className="sr-only">Loading...</span>
             </div>
-          ) : (
-            <p className="w-6 h-6 bg-gradient-to-tr from-green-600 to-green-300 text-white flex items-center justify-center rounded-full text-sm font-semibold">
-              {totalCompletedTasks?.completeTaskCount || 0}
-            </p>
-          )}
 
           <p className="text-xs font-semibold opacity-60">
             Task Completed Today

@@ -8,6 +8,7 @@ import Register from "../components/context/auth/register/Register";
 import DashboardLayout from "../layouts/DashboardLayout";
 import Dashboard from "../components/dashboardComponents/dashboard/Dashboard";
 import PrivateRoute from "../components/shared/privateRoute/PrivateRoute";
+import MyTask from "../components/dashboardComponents/tasks/MyTask";
 
 const router = createBrowserRouter([
   {
@@ -46,7 +47,10 @@ const router = createBrowserRouter([
         path: "/dashboard/tasks",
         element: <Tasks />,
       },
-
+      {
+        path: "/dashboard/my-task",
+        element: <MyTask />,
+      },
     ],
   },
 ]);

@@ -1,29 +1,17 @@
 import { Dropdown } from 'flowbite-react';
 import { useContext } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import inboxIcon from '../../../../assets/icons/inbox.svg';
-import notificationIcon from '../../../../assets/icons/notification.svg';
 import { AuthContext } from '../../../context/auth/authProvider/AuthProvider';
-import { useWorkspace } from '../../../context/workspace/WorkspaceContext';
 import DateTimeDisplay from '../displayTimeAndDate/DateTimeDisplay';
-import CustomDropdown from '../dropdown/CustomDropdown';
-
-import { HiMiniMoon } from 'react-icons/hi2';
-import { TbSunFilled } from 'react-icons/tb';
 
 const DashboardNavbar = () => {
   const { user, signOutUser } = useContext(AuthContext);
-  const { notifications, refetchNotifications, isDarkMode, setIsDarkMode } = useWorkspace();
 
   const navigate = useNavigate();
   const handleLogOut = () => {
     navigate('/');
     signOutUser();
     localStorage.removeItem('accessToken');
-  };
-  const darkModeHandler = () => {
-    setIsDarkMode(!isDarkMode);
-    document.body.classList.toggle('dark');
   };
 
   return (
@@ -36,10 +24,9 @@ const DashboardNavbar = () => {
         <div className="flex gap-3 items-center">
         
           <button
-            onClick={() => darkModeHandler()}
-            className={`w-10 h-10 p-1.5 border-2 border-dark dark:border-white bg-dark dark:bg-white text-white dark:text-dark text-xl rounded-full flex items-center justify-center`}
+            className="w-10 h-10 p-1.5 border-2 border-dark dark:border-white bg-dark dark:bg-white text-white dark:text-dark text-xl rounded-full flex items-center justify-center"
           >
-            {isDarkMode ? <TbSunFilled /> : <HiMiniMoon />}
+         
           </button>
 
 
