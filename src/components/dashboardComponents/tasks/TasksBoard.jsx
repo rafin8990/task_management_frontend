@@ -68,6 +68,7 @@ const TasksBoard = () => {
     });
   };
 
+  // Handle Drag & Drop
   const onDragEnd = async (result) => {
     const { source, destination } = result;
 
@@ -76,12 +77,14 @@ const TasksBoard = () => {
     const draggedTaskId = result.draggableId;
     const newStatus = destination.droppableId;
 
+    // Update UI optimistically
     setTasks((prevTasks) =>
       prevTasks.map((task) =>
         task.id === draggedTaskId ? { ...task, status: newStatus } : task
       )
     );
-    
+    console.log(newStatus);
+    // Send API request to update status in backend
     try {
       await fetch(`http://localhost:5000/api/v1/task/${draggedTaskId}`, {
         method: "PATCH",
@@ -95,7 +98,7 @@ const TasksBoard = () => {
           if (data) {
             toast.success("Task status updated!");
             setTimeout(() => {
-              window.location.reload();
+              window.location.reload(); // Reload the page after update
             }, 500);
           }
         });
@@ -107,6 +110,7 @@ const TasksBoard = () => {
 
   return (
     <div className="App">
+      {/* MODAL */}
       <Modal
         show={openModal}
         size="6xl"
@@ -133,11 +137,7 @@ const TasksBoard = () => {
               <div className="mt-3">
                 <label htmlFor="title" className="text-sm font-medium">
                   Task Name{" "}
-                  {errors.title && (
-                    <span className="text-red-500 text-xs ms-2">
-                      (Task title is required)
-                    </span>
-                  )}
+                  {errors.title && <span className="text-red-500 text-xs ms-2">(Task title is required)</span>}
                 </label>
                 <input
                   {...register("title", { required: true })}
@@ -149,6 +149,59 @@ const TasksBoard = () => {
                   }`}
                 />
               </div>
+
+              {/* Priority */}
+              <div className="mt-3">
+                <label htmlFor="priority" className="text-sm font-medium">
+                  Priority{" "}
+                  {errors.priority && <span className="text-red-500 text-xs ms-2">(Priority is required)</span>}
+                </label>
+                <select
+                  {...register("priority", { required: true })}
+                  id="priority"
+                  className={`w-full border-2 border-dark p-3.5 input-primary mt-2 ${
+                    errors.priority ? "border-red-500" : ""
+                  }`}
+                  defaultValue="Low"
+                >
+                  <option value="">Select priority</option>
+                  <option value="Low">Low</option>
+                  <option value="Medium">Medium</option>
+                  <option value="High">High</option>
+                </select>
+              </div>
+
+              {/* Due Date */}
+              <div className="mt-3">
+                <label htmlFor="due_date" className="text-sm font-medium">
+                  Due Date{" "}
+                  {errors.due_date && <span className="text-red-500 text-xs ms-2">(Due date is required)</span>}
+                </label>
+                <input
+                  {...register("due_date", { required: true })}
+                  type="date"
+                  defaultValue={new Date().toISOString().split("T")[0]}
+                  id="due_date"
+                  className={`w-full border-2 border-dark p-3.5 input-primary mt-2 ${
+                    errors.due_date ? "border-red-500" : ""
+                  }`}
+                />
+              </div>
+
+              {/* Description */}
+              <div className="mt-3">
+                <label htmlFor="description" className="text-sm font-medium">
+                  Description{" "}
+                  {errors.description && <span className="text-red-500 text-xs ms-2">(Description is required)</span>}
+                </label>
+                <textarea
+                  {...register("description")}
+                  id="description"
+                  placeholder="Enter task description"
+                  className="w-full border-2 border-dark p-3.5 input-primary mt-2"
+                />
+              </div>
+
 
               <button
                 type="submit"
